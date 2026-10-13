@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mousecito y la Ciudad de las Computadoras | Videojuego Educativo</title>
+  <meta name="description" content="Videojuego educativo para primer grado: descubre para qué usamos un computador explorando una ciudad mágica con Mousecito.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Contenedor Maestro del Videojuego -->
+  <div id="game-container" class="game-viewport">
+    
+    <!-- SVG Global Defs (Gradientes, Sombras, Filtros Reutilizables) -->
+    <svg id="svg-defs" style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+      <defs>
+        <!-- Gradientes para Personaje y Escenarios -->
+        <linearGradient id="grad-sky-day" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#72cbfb"/>
+          <stop offset="60%" stop-color="#b8e7fe"/>
+          <stop offset="100%" stop-color="#fff9e6"/>
+        </linearGradient>
+        <linearGradient id="grad-sky-sunset" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ff7e67"/>
+          <stop offset="50%" stop-color="#feb47b"/>
+          <stop offset="100%" stop-color="#ffeccc"/>
+        </linearGradient>
+        <linearGradient id="grad-fur" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f8b070"/>
+          <stop offset="100%" stop-color="#e07a3f"/>
+        </linearGradient>
+        <linearGradient id="grad-fur-light" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ffdfba"/>
+          <stop offset="100%" stop-color="#f8be86"/>
+        </linearGradient>
+        <linearGradient id="grad-hat" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#f3d082"/>
+          <stop offset="100%" stop-color="#d4a34b"/>
+        </linearGradient>
+        <linearGradient id="grad-vest" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#6ba368"/>
+          <stop offset="100%" stop-color="#40773d"/>
+        </linearGradient>
+        <linearGradient id="grad-screen-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e8f8ff"/>
+          <stop offset="100%" stop-color="#c5edfd"/>
+        </linearGradient>
+        <linearGradient id="grad-gold-star" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fff176"/>
+          <stop offset="100%" stop-color="#fbc02d"/>
+        </linearGradient>
+        <radialGradient id="grad-cheek" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ff7b90" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#ff7b90" stop-opacity="0"/>
+        </radialGradient>
+        <!-- Filtros de sombra suave -->
+        <filter id="soft-shadow" x="-10%" y="-10%" width="130%" height="130%">
+          <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#2a3b5c" flood-opacity="0.18"/>
+        </filter>
+        <filter id="glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+        </filter>
+      </defs>
+    </svg>
+
+    <!-- Canvas de Confeti y Partículas Festivas -->
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+    <!-- Barra de Navegación e Interfaz Superior (HUD) -->
+    <header id="game-hud" class="game-hud hidden" role="region" aria-label="Controles del juego">
+      <div class="hud-left">
+        <button id="btn-hud-map" class="hud-btn btn-map" title="Volver al Mapa de la Ciudad" aria-label="Volver al mapa">
+          <span class="btn-icon">🗺️</span>
+          <span class="btn-text">Mapa</span>
+        </button>
+        <div class="hud-mission-info">
+          <span id="hud-level-tag" class="hud-tag">NIVEL</span>
+          <h2 id="hud-level-title" class="hud-title">Lugar</h2>
+        </div>
+      </div>
+
+      <div class="hud-center">
+        <!-- Indicador de Estrellas Obtenidas -->
+        <div class="hud-stars-tracker" title="Tus estrellas de explorador" aria-label="Progreso de estrellas">
+          <span class="star-slot" data-index="1">⭐</span>
+          <span class="star-slot" data-index="2">⭐</span>
+          <span class="star-slot" data-index="3">⭐</span>
+          <span class="star-slot" data-index="4">⭐</span>
+          <span class="star-slot" data-index="5">⭐</span>
+          <span class="star-slot" data-index="6">⭐</span>
+        </div>
+      </div>
+
+      <div class="hud-right">
+        <button id="btn-hud-help" class="hud-btn btn-help" title="Pedir ayuda a Mousecito" aria-label="Ayuda">
+          <span class="btn-icon">💡</span>
+          <span class="btn-text">Pista</span>
+        </button>
+        <button id="btn-hud-sound" class="hud-btn btn-sound" title="Activar o desactivar sonido" aria-label="Sonido">
+          <span id="hud-sound-icon" class="btn-icon">🔊</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- PANTALLA 1: PORTADA / INICIO -->
+    <section id="screen-title" class="game-screen screen-title active" aria-labelledby="title-heading">
+      <div class="title-scenery">
+        <!-- Cielo con Sol y Nubes Flotantes -->
+        <div class="sky-background">
+          <div class="cloud cloud-1"></div>
+          <div class="cloud cloud-2"></div>
+          <div class="sun-glow"></div>
+        </div>
+        
+        <!-- Ciudad Ilustrada en Fondo con Profundidad -->
+        <div class="city-skyline-bg"></div>
+        <div class="hills-foreground"></div>
+
+        <!-- Mousecito y Computador en Primer Plano -->
+        <div class="title-hero-composition">
+          <!-- Personaje Mousecito Gigante Bienvenida -->
+          <div class="mousecito-hero-wrapper" id="title-mousecito">
+            <!-- SVG del personaje Mousecito -->
+            <svg class="mousecito-svg" viewBox="0 0 240 280" role="img" aria-label="Mousecito el ratón explorador">
+              <!-- Sombra del personaje -->
+              <ellipse cx="120" cy="265" rx="75" ry="14" fill="#1b2838" opacity="0.25"/>
+              
+              <!-- Cola curva de ratón -->
+              <path class="mouse-tail" d="M 60 210 Q 20 220 25 180 T 15 140" fill="none" stroke="#e07a3f" stroke-width="8" stroke-linecap="round"/>
+              
+              <!-- Pies / Zapatitos de explorador -->
+              <ellipse cx="90" cy="255" rx="22" ry="12" fill="#5c381e"/>
+              <ellipse cx="150" cy="255" rx="22" ry="12" fill="#5c381e"/>
+              
+              <!-- Mochila de explorador en espalda -->
+              <rect x="52" y="150" width="34" height="52" rx="10" fill="#7a4622" stroke="#5c381e" stroke-width="3"/>
+              <rect x="56" y="165" width="26" height="20" rx="5" fill="#a05e32"/>
+
+              <!-- Cuerpo / Pancita -->
+              <ellipse cx="120" cy="195" rx="48" ry="54" fill="url(#grad-fur)"/>
+              <ellipse cx="120" cy="202" rx="32" ry="38" fill="url(#grad-fur-light)"/>
+
+              <!-- Chaleco verde de explorador -->
+              <path d="M 78 165 Q 120 180 162 165 L 160 220 Q 120 235 80 220 Z" fill="url(#grad-vest)" opacity="0.95"/>
+              <!-- Botoncitos dorados del chaleco -->
+              <circle cx="120" cy="182" r="4.5" fill="#ffd152"/>
+              <circle cx="120" cy="202" r="4.5" fill="#ffd152"/>
+
+              <!-- Brazo Izquierdo (Mochilero / Reposo) -->
+              <g class="arm-left">
+                <path d="M 76 170 Q 55 195 72 215" fill="none" stroke="url(#grad-fur)" stroke-width="15" stroke-linecap="round"/>
+                <circle cx="74" cy="216" r="10" fill="url(#grad-fur)"/>
+              </g>
+
+              <!-- Brazo Derecho (Saludando con la manita) -->
+              <g class="arm-right arm-waving">
+                <path d="M 164 170 Q 190 145 188 120" fill="none" stroke="url(#grad-fur)" stroke-width="15" stroke-linecap="round"/>
+                <!-- Pata saludando -->
+                <circle cx="188" cy="115" r="12" fill="url(#grad-fur)"/>
+                <ellipse cx="183" cy="108" rx="4" ry="6" fill="url(#grad-fur)"/>
+                <ellipse cx="191" cy="106" rx="4" ry="6" fill="url(#grad-fur)"/>
+                <ellipse cx="197" cy="112" rx="4" ry="6" fill="url(#grad-fur)"/>
+              </g>
+
+              <!-- Oreja Izquierda Grande Redonda -->
+              <circle cx="65" cy="85" r="38" fill="url(#grad-fur)"/>
+              <circle cx="65" cy="85" r="24" fill="#ffccd5"/>
+
+              <!-- Oreja Derecha Grande Redonda -->
+              <circle cx="175" cy="85" r="38" fill="url(#grad-fur)"/>
+              <circle cx="175" cy="85" r="24" fill="#ffccd5"/>
+
+              <!-- Cabeza de Mousecito -->
+              <ellipse cx="120" cy="115" rx="52" ry="46" fill="url(#grad-fur)"/>
+              
+              <!-- Mejillas Sonrosadas -->
+              <ellipse cx="88" cy="126" rx="14" ry="9" fill="url(#grad-cheek)"/>
+              <ellipse cx="152" cy="126" rx="14" ry="9" fill="url(#grad-cheek)"/>
+
+              <!-- Ojos Grandes Expresivos y Curiosos -->
+              <g class="eyes-container">
+                <!-- Ojo Izquierdo -->
+                <ellipse class="eye eye-left" cx="102" cy="108" rx="11" ry="14" fill="#201815"/>
+                <circle class="eye-shine" cx="106" cy="103" r="4.5" fill="#ffffff"/>
+                <circle class="eye-shine-small" cx="99" cy="113" r="2" fill="#ffffff"/>
+
+                <!-- Ojo Derecho -->
+                <ellipse class="eye eye-right" cx="138" cy="108" rx="11" ry="14" fill="#201815"/>
+                <circle class="eye-shine" cx="142" cy="103" r="4.5" fill="#ffffff"/>
+                <circle class="eye-shine-small" cx="135" cy="113" r="2" fill="#ffffff"/>
+              </g>
+
+              <!-- Bigotitos amigables -->
+              <path d="M 68 126 Q 84 128 92 129 M 66 136 Q 83 135 91 133" stroke="#e07a3f" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M 172 126 Q 156 128 148 129 M 174 136 Q 157 135 149 133" stroke="#e07a3f" stroke-width="2.5" stroke-linecap="round"/>
+
+              <!-- Trompita y Naricita -->
+              <ellipse cx="120" cy="125" rx="18" ry="12" fill="url(#grad-fur-light)"/>
+              <ellipse cx="120" cy="121" rx="8" ry="5.5" fill="#ff5c77"/>
+
+              <!-- Sonrisa tierna y alegre -->
+              <path class="mouse-mouth" d="M 112 129 Q 120 138 128 129" fill="none" stroke="#662211" stroke-width="3" stroke-linecap="round"/>
+
+              <!-- Sombrero de explorador con cinta verde -->
+              <path d="M 72 82 Q 120 50 168 82 Q 120 74 72 82 Z" fill="#b08432"/>
+              <path d="M 82 80 C 82 45, 158 45, 158 80 Z" fill="url(#grad-hat)"/>
+              <rect x="85" y="73" width="70" height="7" rx="3" fill="#40773d"/>
+              <!-- Insignia del sombrero -->
+              <circle cx="120" cy="62" r="6" fill="#ffd152"/>
+            </svg>
+          </div>
+
+          <!-- Computador Mágico Ilustrado con Pantalla Activa -->
+          <div class="hero-computer-card">
+            <div class="computer-monitor-frame">
+              <div class="screen-bezel">
+                <div class="webcam-dot"></div>
+                <div class="screen-display">
+                  <div class="screen-preview-grid">
+                    <span class="preview-item">📚 Aprender</span>
+                    <span class="preview-item">🎨 Pintar</span>
+                    <span class="preview-item">✍️ Escribir</span>
+                    <span class="preview-item">🎵 Escuchar</span>
+                    <span class="preview-item">🎮 Jugar</span>
+                    <span class="preview-item">💬 Comunicar</span>
+                  </div>
+                </div>
+              </div>
+              <div class="monitor-neck"></div>
+              <div class="monitor-base"></div>
+              <div class="keyboard-mini">
+                <div class="keyboard-keys-shine"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caja de Título y Botón Principal -->
+        <div class="title-action-box">
+          <div class="title-badge">Aventura Educativa • 1° Primaria</div>
+          <h1 id="title-heading" class="main-game-title">
+            MOUSECITO
+            <span class="title-sub-glow">Y LA CIUDAD DE LAS COMPUTADORAS</span>
+          </h1>
+          <p class="title-tagline">"¡Descubre todo lo que puedes hacer con un computador!"</p>
+
+          <div class="title-buttons-group">
+            <button id="btn-start-game" class="btn-primary-action pulse-animation">
+              <span class="btn-play-icon">▶</span>
+              <span>COMENZAR AVENTURA</span>
+            </button>
+            <div class="title-aux-buttons">
+              <button id="btn-title-sound" class="btn-secondary-action" title="Activar sonido">
+                <span id="title-sound-icon">🔊</span> Sonido: <strong id="title-sound-label">Activado</strong>
+              </button>
+              <button id="btn-reset-progress" class="btn-secondary-action" title="Reiniciar aventura desde el inicio">
+                🔄 Nueva partida
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 2: MAPA INTERACTIVO DE LA CIUDAD -->
+    <section id="screen-map" class="game-screen screen-map" aria-labelledby="map-heading">
+      <div class="map-container">
+        <!-- Fondo Pintado del Valle y Río de la Ciudad -->
+        <div class="map-scenery-art">
+          <div class="map-sky-gradient"></div>
+          <div class="map-mountains"></div>
+          <div class="map-river-curved"></div>
+          <div class="map-stone-pathways"></div>
+        </div>
+
+        <div class="map-header-bar">
+          <h2 id="map-heading" class="map-title-tag">🗺️ Ciudad de las Computadoras</h2>
+          <p class="map-instruction-text">Toca un lugar brillante para comenzar una misión</p>
+        </div>
+
+        <!-- 6 Lugares Ilustrados en el Mapa + Gran Plaza Central -->
+        <div class="map-destinations-grid">
+          
+          <!-- 1. Biblioteca Mágica -->
+          <div id="dest-1" class="map-node node-active" data-level="1" tabindex="0" role="button" aria-label="Nivel 1: La Biblioteca Mágica">
+            <div class="node-building-art building-library">
+              <div class="roof-books"></div>
+              <div class="window-warm"></div>
+              <div class="building-icon-badge">📘</div>
+            </div>
+            <div class="node-label">
+              <span class="node-number">1</span>
+              <strong class="node-name">Biblioteca Mágica</strong>
+              <small class="node-desc">Aprender y Tareas</small>
+            </div>
+            <div class="node-status-badge status-unlocked">
+              <span class="status-star">⭐</span>
+            </div>
+          </div>
+
+          <!-- 2. Taller de Colores -->
+          <div id="dest-2" class="map-node node-locked" data-level="2" tabindex="0" role="button" aria-label="Nivel 2: El Taller de Colores">
+            <div class="node-building-art building-art-studio">
+              <div class="chimney-rainbow"></div>
+              <div class="palette-roof"></div>
+              <div class="building-icon-badge">🎨</div>
+            </div>
+            <div class="node-label">
+              <span class="node-number">2</span>
+              <strong class="node-name">Taller de Colores</strong>
+              <small class="node-desc">Dibujar y Pintar</small>
+            </div>
+            <div class="node-status-badge status-locked">
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
+
+          <!-- 3. Escuela de Letras -->
+          <div id="dest-3" class="map-node node-locked" data-level="3" tabindex="0" role="button" aria-label="Nivel 3: La Escuela de Letras">
+            <div class="node-building-art building-school">
+              <div class="clock-bell"></div>
+              <div class="chalkboard-roof"></div>
+              <div class="building-icon-badge">✍️</div>
+            </div>
+            <div class="node-label">
+              <span class="node-number">3</span>
+              <strong class="node-name">Escuela de Letras</strong>
+              <small class="node-desc">Escribir con Teclado</small>
+            </div>
+            <div class="node-status-badge status-locked">
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
+
+          <!-- 4. Estudio Musical -->
+          <div id="dest-4" class="map-node node-locked" data-level="4" tabindex="0" role="button" aria-label="Nivel 4: El Estudio Musical">
+            <div class="node-building-art building-music">
+              <div class="speaker-towers"></div>
+              <div class="notes-float"></div>
+              <div class="building-icon-badge">🎵</div>
+            </div>
+            <div class="node-label">
+              <span class="node-number">4</span>
+              <strong class="node-name">Estudio Musical</strong>
+              <small class="node-desc">Música y Videos</small>
+            </div>
+            <div class="node-status-badge status-locked">
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
+
+          <!-- 5. Parque de los Retos -->
+          <div id="dest-5" class="map-node node-locked" data-level="5" tabindex="0" role="button" aria-label="Nivel 5: El Parque de los Retos">
+            <div class="node-building-art building-park">
+              <div class="carnival-flags"></div>
+              <div class="puzzle-gate"></div>
+              <div class="building-icon-badge">🎮</div>
+            </div>
+            <div class="node-label">
+              <span class="node-number">5</span>
+              <strong class="node-name">Parque de Retos</strong>
+              <small class="node-desc">Juegos Didácticos</small>
+            </div>
+            <div class="node-status-badge status-locked">
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
+
+          <!-- 6. Casa de los Abrazos -->
+          <div id="dest-6" class="map-node node-locked" data-level="6" tabindex="0" role="button" aria-label="Nivel 6: La Casa de los Abrazos">
+            <div class="node-building-art building-home">
+              <div class="heart-smoke"></div>
+              <div class="flower-garden"></div>
+              <div class="building-icon-badge">💬</div>
+            </div>
+            <div class="node-label">
+              <span class="node-number">6</span>
+              <strong class="node-name">Casa de los Abrazos</strong>
+              <small class="node-desc">Comunicar a Distancia</small>
+            </div>
+            <div class="node-status-badge status-locked">
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
+
+          <!-- Gran Plaza Central (Reto Final) -->
+          <div id="dest-plaza" class="map-node node-plaza node-locked" data-level="final" tabindex="0" role="button" aria-label="Gran Reto: La Plaza Central">
+            <div class="node-building-art building-plaza">
+              <div class="fountain-spout"></div>
+              <div class="town-hall-tower"></div>
+              <div class="building-icon-badge">👑</div>
+            </div>
+            <div class="node-label">
+              <strong class="node-name">Gran Plaza Central</strong>
+              <small class="node-desc">¡Misión de toda la Ciudad!</small>
+            </div>
+            <div class="node-status-badge status-locked">
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Avatar Móvil de Mousecito en el Mapa -->
+        <div id="map-mousecito-avatar" class="map-avatar-walker">
+          <div class="mini-mousecito-graphic">
+            <span class="walker-shadow"></span>
+            <span class="walker-body">🐭</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PANTALLA 3: NIVEL 1 - LA BIBLIOTECA MÁGICA -->
+    <section id="screen-level1" class="game-screen screen-level screen-library" aria-label="Nivel 1: La Biblioteca Mágica">
+      <div class="scene-stage">
+        <!-- Fondo de estanterías y ventana mágica -->
+        <div class="scenery-library-room">
+          <div class="window-sunbeam"></div>
+          <div class="bookshelves-back"></div>
+          <div class="table-desk"></div>
+        </div>
+
+        <!-- Escenario Interactivo Central: Computador de Consulta Digital -->
+        <div class="library-interactive-area">
+          <div class="magic-computer-screen">
+            <div class="computer-header-tab">
+              <span class="tab-indicator">📖 Biblioteca Digital de Mousecito</span>
+              <span class="tab-status">El computador nos ayuda a aprender</span>
+            </div>
+
+            <!-- Menú de Libros Digitales Interactivos -->
+            <div class="library-books-shelf">
+              <button class="book-card-btn active" data-book="animals" id="btn-book-animals">
+                <span class="book-spine">📘</span>
+                <span class="book-title">Animales del Mundo</span>
+              </button>
+              <button class="book-card-btn" data-book="planets" id="btn-book-planets">
+                <span class="book-spine">🪐</span>
+                <span class="book-title">El Sistema Solar</span>
+              </button>
+              <button class="book-card-btn" data-book="story" id="btn-book-story">
+                <span class="book-spine">📖</span>
+                <span class="book-title">Cuento Infantil</span>
+              </button>
+            </div>
+
+            <!-- Contenedor del Libro Digital Abierto -->
+            <div class="book-content-viewer" id="library-viewer">
+              <!-- Vista 1: Animales -->
+              <div class="book-page-content" id="page-animals">
+                <h3 class="page-title">¡Descubre dónde viven los animales!</h3>
+                <p class="page-subtitle">Haz clic en cada animal para investigarlo con el computador:</p>
+                <div class="animals-interactive-grid">
+                  <div class="animal-card" data-animal="lion" tabindex="0" role="button">
+                    <div class="animal-illustration">🦁</div>
+                    <strong class="animal-name">León Fuerte</strong>
+                    <span class="animal-habitat">Vive en la Sabana cálida</span>
+                  </div>
+                  <div class="animal-card" data-animal="fish" tabindex="0" role="button">
+                    <div class="animal-illustration">🐠</div>
+                    <strong class="animal-name">Pez Payaso</strong>
+                    <span class="animal-habitat">Vive en el Arrecife del mar</span>
+                  </div>
+                  <div class="animal-card" data-animal="bird" tabindex="0" role="button">
+                    <div class="animal-illustration">🦜</div>
+                    <strong class="animal-name">Loro Alegre</strong>
+                    <span class="animal-habitat">Vive en los Árboles del bosque</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Vista 2: Planetas -->
+              <div class="book-page-content hidden" id="page-planets">
+                <h3 class="page-title">¡Viaje Espacial por el Computador!</h3>
+                <p class="page-subtitle">Toca los planetas para ver cómo giran:</p>
+                <div class="solar-system-mini">
+                  <div class="planet-interactive sun-star" data-fact="El Sol nos da luz y calor.">☀️ <span>Sol</span></div>
+                  <div class="planet-interactive earth-orb" data-fact="La Tierra es nuestro hogar con agua y vida.">🌍 <span>Tierra</span></div>
+                  <div class="planet-interactive mars-orb" data-fact="Marte es el planeta rojo y misterioso.">🔴 <span>Marte</span></div>
+                  <div class="planet-interactive saturn-orb" data-fact="Saturno tiene anillos mágicos de hielo.">🪐 <span>Saturno</span></div>
+                </div>
+                <div id="planet-fact-bubble" class="fact-bubble">Toca un planeta para aprender un dato asombroso.</div>
+              </div>
+
+              <!-- Vista 3: Cuento -->
+              <div class="book-page-content hidden" id="page-story">
+                <h3 class="page-title">Cuento: El Bosque de la Amistad</h3>
+                <div class="story-interactive-card">
+                  <div class="story-scene-art">🌲 🐻 🍯 🐰 🌸</div>
+                  <p class="story-paragraph">
+                    "El osito y el conejito compartieron una rica merienda de miel y frutas bajo el roble grande."
+                  </p>
+                  <p class="story-note">✨ ¡En el computador podemos leer cientos de cuentos maravillosos!</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mini Reto de Aprendizaje de la Biblioteca -->
+            <div class="library-task-box" id="library-quiz-box">
+              <div class="task-question">
+                <span class="task-icon">❓</span>
+                <span id="library-question-text"><strong>Pregunta de Mousecito:</strong> "¿Dónde investigamos que vive el <strong>León</strong>?"</span>
+              </div>
+              <div class="task-options-row">
+                <button class="quiz-option-btn" data-answer="sea">🌊 En el océano</button>
+                <button class="quiz-option-btn" data-answer="savanna">🌾 En la sabana cálida</button>
+                <button class="quiz-option-btn" data-answer="ice">❄️ En el hielo frío</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Mousecito Guía Lateral con Globo Parlante -->
+        <aside class="character-guide-dock" id="dock-level1">
+          <div class="speech-bubble" id="bubble-level1">
+            "¡Hola! En el computador podemos leer libros, aprender sobre animales y hacer tareas escolares."
+          </div>
+          <div class="dock-mousecito-avatar"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 4: NIVEL 2 - EL TALLER DE COLORES -->
+    <section id="screen-level2" class="game-screen screen-level screen-art-studio" aria-label="Nivel 2: El Taller de Colores">
+      <div class="scene-stage">
+        <!-- Fondo de Estudio de Arte con Pinturas -->
+        <div class="scenery-studio-room">
+          <div class="easels-wall"></div>
+          <div class="splatter-decorations"></div>
+        </div>
+
+        <div class="studio-interactive-workspace">
+          <!-- Paleta de Herramientas y Colores -->
+          <div class="art-palette-toolbar">
+            <div class="palette-header">
+              <span class="palette-icon">🎨</span>
+              <strong>Elige un Color:</strong>
+            </div>
+            
+            <div class="color-pots-grid">
+              <button class="color-pot-btn active" data-color="#ff4757" style="--pot-color: #ff4757;" title="Rojo Pasión" aria-label="Color Rojo"></button>
+              <button class="color-pot-btn" data-color="#ffa502" style="--pot-color: #ffa502;" title="Naranja Cálido" aria-label="Color Naranja"></button>
+              <button class="color-pot-btn" data-color="#ffdd59" style="--pot-color: #ffdd59;" title="Amarillo Sol" aria-label="Color Amarillo"></button>
+              <button class="color-pot-btn" data-color="#2ed573" style="--pot-color: #2ed573;" title="Verde Hoja" aria-label="Color Verde"></button>
+              <button class="color-pot-btn" data-color="#1e90ff" style="--pot-color: #1e90ff;" title="Azul Cielo" aria-label="Color Azul"></button>
+              <button class="color-pot-btn" data-color="#a55eea" style="--pot-color: #a55eea;" title="Morado Mágico" aria-label="Color Morado"></button>
+              <button class="color-pot-btn" data-color="#ff78b9" style="--pot-color: #ff78b9;" title="Rosa Algodón" aria-label="Color Rosa"></button>
+              <button class="color-pot-btn" data-color="#ffffff" style="--pot-color: #ffffff;" title="Borrador Blanco" aria-label="Color Blanco"></button>
+            </div>
+
+            <!-- Indicador del Pincel Activo -->
+            <div class="brush-indicator-card">
+              <div class="brush-icon-preview">🖌️</div>
+              <div class="brush-status">
+                <span class="brush-label">Pincel listo</span>
+                <span id="brush-color-chip" class="color-chip" style="background-color: #ff4757;"></span>
+              </div>
+            </div>
+
+            <!-- Contador de Colores Usados -->
+            <div class="art-counter-box">
+              <span>Colores usados: <strong id="art-colors-count">0</strong> / 3</span>
+            </div>
+
+            <div class="art-actions-row">
+              <button id="btn-art-clear" class="btn-tool-secondary">🔄 Limpiar</button>
+              <button id="btn-art-finish" class="btn-tool-finish">✨ ¡Terminar Dibujo!</button>
+            </div>
+          </div>
+
+          <!-- Lienzo Digital Interactivo SVG (Paisaje con Casa, Árbol y Sol) -->
+          <div class="art-canvas-container">
+            <div class="canvas-wooden-frame">
+              <svg id="coloring-canvas-svg" viewBox="0 0 600 420" class="coloring-svg">
+                <!-- Fondo Cielo -->
+                <rect id="paint-sky" class="paintable-region" x="0" y="0" width="600" height="280" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+                
+                <!-- Colina y Césped -->
+                <path id="paint-hill" class="paintable-region" d="M 0 280 Q 200 240 400 270 T 600 260 L 600 420 L 0 420 Z" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+                
+                <!-- Sol Radiante -->
+                <circle id="paint-sun" class="paintable-region" cx="100" cy="80" r="45" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+                <!-- Rayos del Sol -->
+                <path d="M 100 20 L 100 30 M 100 130 L 100 140 M 40 80 L 50 80 M 150 80 L 160 80 M 55 40 L 65 50 M 145 120 L 135 110 M 145 40 L 135 50 M 55 120 L 65 110" stroke="#333333" stroke-width="4" stroke-linecap="round"/>
+
+                <!-- Nube Esponjosa -->
+                <path id="paint-cloud" class="paintable-region" d="M 450 80 Q 460 50 490 60 Q 520 40 550 65 Q 570 80 560 100 Q 550 120 520 115 Q 490 125 460 110 Q 440 95 450 80 Z" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+
+                <!-- Casita: Paredes -->
+                <rect id="paint-walls" class="paintable-region" x="180" y="210" width="160" height="130" rx="4" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+
+                <!-- Casita: Techo Triangular -->
+                <polygon id="paint-roof" class="paintable-region" points="160,210 260,130 360,210" fill="#ffffff" stroke="#333333" stroke-width="4" stroke-linejoin="round"/>
+
+                <!-- Casita: Puerta -->
+                <path id="paint-door" class="paintable-region" d="M 235 270 Q 235 250 255 250 Q 275 250 275 270 L 275 340 L 235 340 Z" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+                <circle cx="268" cy="295" r="3.5" fill="#333333"/>
+
+                <!-- Casita: Ventana -->
+                <rect id="paint-window" class="paintable-region" x="195" y="235" width="30" height="30" rx="3" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+                <line x1="210" y1="235" x2="210" y2="265" stroke="#333333" stroke-width="2"/>
+                <line x1="195" y1="250" x2="225" y2="250" stroke="#333333" stroke-width="2"/>
+
+                <!-- Árbol: Tronco -->
+                <path id="paint-trunk" class="paintable-region" d="M 440 230 L 430 360 L 470 360 L 460 230 Z" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+
+                <!-- Árbol: Copa Frondosa -->
+                <path id="paint-tree-leaves" class="paintable-region" d="M 400 200 Q 380 150 430 130 Q 450 90 490 120 Q 530 110 535 160 Q 550 200 500 220 Q 450 240 400 200 Z" fill="#ffffff" stroke="#333333" stroke-width="4"/>
+
+                <!-- Flores en el Jardín -->
+                <g class="flower-group">
+                  <!-- Tallo -->
+                  <path d="M 120 370 Q 125 340 120 320" stroke="#333333" stroke-width="3" fill="none"/>
+                  <!-- Pétalos -->
+                  <circle id="paint-flower1" class="paintable-region" cx="120" cy="315" r="16" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+                  <circle cx="120" cy="315" r="6" fill="#ffd152"/>
+                </g>
+
+                <g class="flower-group">
+                  <path d="M 370 375 Q 375 350 370 330" stroke="#333333" stroke-width="3" fill="none"/>
+                  <circle id="paint-flower2" class="paintable-region" cx="370" cy="325" r="16" fill="#ffffff" stroke="#333333" stroke-width="3"/>
+                  <circle cx="370" cy="325" r="6" fill="#ffd152"/>
+                </g>
+
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <aside class="character-guide-dock" id="dock-level2">
+          <div class="speech-bubble" id="bubble-level2">
+            "¡Elige un color y toca cualquier parte del dibujo para pintar con el computador!"
+          </div>
+          <div class="dock-mousecito-avatar artist-mode"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 5: NIVEL 3 - LA ESCUELA DE LETRAS -->
+    <section id="screen-level3" class="game-screen screen-level screen-school" aria-label="Nivel 3: La Escuela de Letras">
+      <div class="scene-stage">
+        <!-- Fondo de Aula de Clases con Pizarra Verde -->
+        <div class="scenery-school-room">
+          <div class="chalkboard-banner">
+            <span>¡Con el teclado del computador escribimos palabras y mensajes!</span>
+          </div>
+          <div class="desk-surface"></div>
+        </div>
+
+        <div class="school-interactive-area">
+          <!-- Pantalla del Monitor con la Palabra Meta -->
+          <div class="monitor-typing-display">
+            <div class="word-challenge-header">
+              <span class="challenge-hint-text">Misión: Escribe la palabra que ves en pantalla</span>
+              <div class="challenge-target-pill">
+                <span class="target-icon" id="word-target-icon">☀️</span>
+                <span class="target-word" id="word-target-text">SOL</span>
+              </div>
+            </div>
+
+            <!-- Ranuras para las letras formadas -->
+            <div class="word-slots-container" id="word-slots-row">
+              <div class="letter-slot" data-slot="0">_</div>
+              <div class="letter-slot" data-slot="1">_</div>
+              <div class="letter-slot" data-slot="2">_</div>
+            </div>
+
+            <!-- Mensaje de Retroalimentación Inmediata -->
+            <div class="typing-status-feedback" id="typing-status">
+              ¡Presiona la primera letra en el teclado grande!
+            </div>
+          </div>
+
+          <!-- Teclado Visual Grande, Táctil y Amigable -->
+          <div class="giant-keyboard-container">
+            <div class="keyboard-casing">
+              
+              <!-- Fila 1 de Teclas -->
+              <div class="keyboard-row">
+                <button class="key-btn" data-key="A">A</button>
+                <button class="key-btn" data-key="B">B</button>
+                <button class="key-btn" data-key="C">C</button>
+                <button class="key-btn" data-key="D">D</button>
+                <button class="key-btn" data-key="E">E</button>
+                <button class="key-btn" data-key="F">F</button>
+                <button class="key-btn" data-key="G">G</button>
+                <button class="key-btn" data-key="H">H</button>
+                <button class="key-btn" data-key="I">I</button>
+              </div>
+
+              <!-- Fila 2 de Teclas -->
+              <div class="keyboard-row">
+                <button class="key-btn" data-key="J">J</button>
+                <button class="key-btn" data-key="K">K</button>
+                <button class="key-btn" data-key="L">L</button>
+                <button class="key-btn" data-key="M">M</button>
+                <button class="key-btn" data-key="N">N</button>
+                <button class="key-btn" data-key="O">O</button>
+                <button class="key-btn" data-key="P">P</button>
+                <button class="key-btn" data-key="Q">Q</button>
+                <button class="key-btn" data-key="R">R</button>
+              </div>
+
+              <!-- Fila 3 de Teclas + Teclas de Control -->
+              <div class="keyboard-row">
+                <button class="key-btn" data-key="S">S</button>
+                <button class="key-btn" data-key="T">T</button>
+                <button class="key-btn" data-key="U">U</button>
+                <button class="key-btn" data-key="V">V</button>
+                <button class="key-btn" data-key="W">W</button>
+                <button class="key-btn" data-key="X">X</button>
+                <button class="key-btn" data-key="Y">Y</button>
+                <button class="key-btn" data-key="Z">Z</button>
+                <button id="btn-key-backspace" class="key-btn key-action" title="Borrar">⌫ Borrar</button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Selector de palabras adicionales si el niño quiere más retos -->
+          <div class="school-words-selector">
+            <span>Elegir palabra:</span>
+            <button class="word-choice-btn active" data-word="SOL" data-icon="☀️">SOL</button>
+            <button class="word-choice-btn" data-word="OSO" data-icon="🐻">OSO</button>
+            <button class="word-choice-btn" data-word="CASA" data-icon="🏡">CASA</button>
+            <button class="word-choice-btn" data-word="HOLA" data-icon="👋">HOLA</button>
+          </div>
+
+        </div>
+
+        <aside class="character-guide-dock" id="dock-level3">
+          <div class="speech-bubble" id="bubble-level3">
+            "¡Mira el teclado! Pulsa cada letra para escribir en la pantalla de la computadora."
+          </div>
+          <div class="dock-mousecito-avatar student-mode"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 6: NIVEL 4 - EL ESTUDIO MUSICAL -->
+    <section id="screen-level4" class="game-screen screen-level screen-music-studio" aria-label="Nivel 4: El Estudio Musical">
+      <div class="scene-stage">
+        <!-- Fondo de Estudio con Luces y Parlantes -->
+        <div class="scenery-music-room">
+          <div class="studio-foam-panels"></div>
+          <div class="disco-lights-banner"></div>
+          <div class="sound-wave-glow"></div>
+        </div>
+
+        <div class="music-interactive-area">
+          
+          <!-- Panel Izquierdo: Instrumentos Virtuales para Escuchar Sonidos -->
+          <div class="instruments-dock">
+            <h3 class="dock-heading">🎵 1. Escuchar Instrumentos</h3>
+            <p class="dock-sub">Toca cada uno para escuchar su música generada por el computador:</p>
+
+            <div class="instruments-grid">
+              <button class="instrument-btn" data-inst="drum" id="btn-inst-drum">
+                <span class="inst-icon">🥁</span>
+                <strong class="inst-title">Tambor Alegre</strong>
+                <small class="inst-sound">Ritmo pum-pum</small>
+              </button>
+
+              <button class="instrument-btn" data-inst="bell" id="btn-inst-bell">
+                <span class="inst-icon">🔔</span>
+                <strong class="inst-title">Campana Mágica</strong>
+                <small class="inst-sound">Tink cristalino</small>
+              </button>
+
+              <button class="instrument-btn" data-inst="piano" id="btn-inst-piano">
+                <span class="inst-icon">🎹</span>
+                <strong class="inst-title">Piano Dulce</strong>
+                <small class="inst-sound">Melodía suave</small>
+              </button>
+
+              <button class="instrument-btn" data-inst="clap" id="btn-inst-clap">
+                <span class="inst-icon">👏</span>
+                <strong class="inst-title">Palmas de Fiesta</strong>
+                <small class="inst-sound">¡Plas-plas!</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Panel Derecho: Pantalla de Video Digital Interactiva -->
+          <div class="video-player-dock">
+            <h3 class="dock-heading">🎬 2. Ver Videos en Pantalla</h3>
+            <p class="dock-sub">Con el computador también podemos reproducir y pausar videos:</p>
+
+            <div class="digital-video-frame">
+              <!-- Pantalla de Video Animada -->
+              <div class="video-screen-display" id="video-screen">
+                <div class="video-stage-animation">
+                  <div class="stage-curtains"></div>
+                  <div class="video-dancing-band">
+                    <span class="band-member member-mouse" id="video-mouse">🐭🎶</span>
+                    <span class="band-member member-bear">🐻🎺</span>
+                    <span class="band-member member-rabbit">🐰🎸</span>
+                  </div>
+                  <div class="notes-particle-cloud" id="video-notes-cloud">
+                    <span class="floating-note note-1">🎵</span>
+                    <span class="floating-note note-2">🎶</span>
+                    <span class="floating-note note-3">✨</span>
+                  </div>
+                </div>
+
+                <!-- Barra de Controles del Reproductor de Video -->
+                <div class="video-controls-bar">
+                  <button id="btn-video-play-pause" class="btn-video-ctrl" title="Reproducir / Pausar">
+                    <span id="video-ctrl-icon">▶</span>
+                  </button>
+                  <div class="video-progress-rail">
+                    <div id="video-progress-fill" class="video-progress-fill"></div>
+                  </div>
+                  <span id="video-time-label" class="video-time">0:00</span>
+                </div>
+              </div>
+
+              <!-- Reto de la Fiesta -->
+              <div class="party-finish-box">
+                <span>¿Exploraste un sonido y probaste el video?</span>
+                <button id="btn-finish-music-level" class="btn-primary-action">
+                  🎉 ¡Listo, qué buena música!
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <aside class="character-guide-dock" id="dock-level4">
+          <div class="speech-bubble" id="bubble-level4">
+            "¡Ponte los audífonos! El computador nos permite escuchar música maravillosa y ver videos animados."
+          </div>
+          <div class="dock-mousecito-avatar dj-mode"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 7: NIVEL 5 - EL PARQUE DE LOS RETOS -->
+    <section id="screen-level5" class="game-screen screen-level screen-park" aria-label="Nivel 5: El Parque de los Retos">
+      <div class="scene-stage">
+        <!-- Fondo de Parque al Aire Libre -->
+        <div class="scenery-park-environment">
+          <div class="park-clouds-sun"></div>
+          <div class="park-carnival-spire"></div>
+          <div class="park-grass-ground"></div>
+        </div>
+
+        <div class="park-interactive-area">
+          <div class="park-tabs-header">
+            <span class="park-badge">🎮 Juegos Didácticos del Computador</span>
+            <div class="park-mode-buttons">
+              <button class="park-tab-btn active" data-tab="memory" id="btn-tab-memory">🃏 Reto A: Parejas</button>
+              <button class="park-tab-btn" data-tab="drag" id="btn-tab-drag">🎯 Reto B: Arrastrar a su Lugar</button>
+            </div>
+          </div>
+
+          <!-- JUEGO RETO A: MEMORIA DE PAREJAS -->
+          <div class="park-game-card" id="game-mode-memory">
+            <h3 class="game-instructions-heading">Encuentra las 2 parejas de dibujos iguales:</h3>
+            <p class="game-sub-instruction">Toca dos tarjetas para descubrir qué esconden.</p>
+
+            <div class="memory-cards-grid" id="memory-cards-grid">
+              <!-- 4 Tarjetas Grandes -->
+              <div class="mem-card" data-card="sun" tabindex="0" role="button" aria-label="Tarjeta 1">
+                <div class="card-inner">
+                  <div class="card-face card-back">❓</div>
+                  <div class="card-face card-front">☀️<small>Sol</small></div>
+                </div>
+              </div>
+              <div class="mem-card" data-card="moon" tabindex="0" role="button" aria-label="Tarjeta 2">
+                <div class="card-inner">
+                  <div class="card-face card-back">❓</div>
+                  <div class="card-face card-front">🌙<small>Luna</small></div>
+                </div>
+              </div>
+              <div class="mem-card" data-card="sun" tabindex="0" role="button" aria-label="Tarjeta 3">
+                <div class="card-inner">
+                  <div class="card-face card-back">❓</div>
+                  <div class="card-face card-front">☀️<small>Sol</small></div>
+                </div>
+              </div>
+              <div class="mem-card" data-card="moon" tabindex="0" role="button" aria-label="Tarjeta 4">
+                <div class="card-inner">
+                  <div class="card-face card-back">❓</div>
+                  <div class="card-face card-front">🌙<small>Luna</small></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="game-success-message hidden" id="memory-success-banner">
+              ⭐ ¡Excelente! ¡Encontraste las parejas jugando en el computador!
+            </div>
+          </div>
+
+          <!-- JUEGO RETO B: ARRASTRAR Y SOLTAR A SU LUGAR -->
+          <div class="park-game-card hidden" id="game-mode-drag">
+            <h3 class="game-instructions-heading">Lleva cada objeto a su lugar adecuado:</h3>
+            <p class="game-sub-instruction">Arrastra (o toca el objeto y luego su destino):</p>
+
+            <!-- Objetos Arrastrables -->
+            <div class="drag-items-row" id="drag-items-container">
+              <div class="draggable-item" draggable="true" data-target="nest" id="drag-bird" tabindex="0" role="button">
+                <span class="item-emoji">🐦</span>
+                <span class="item-name">Pajarito</span>
+              </div>
+              <div class="draggable-item" draggable="true" data-target="chest" id="drag-key" tabindex="0" role="button">
+                <span class="item-emoji">🔑</span>
+                <span class="item-name">Llave dorada</span>
+              </div>
+              <div class="draggable-item" draggable="true" data-target="easel" id="drag-brush" tabindex="0" role="button">
+                <span class="item-emoji">🖌️</span>
+                <span class="item-name">Pincel</span>
+              </div>
+            </div>
+
+            <!-- Zonas de Destino -->
+            <div class="drop-zones-row" id="drop-zones-container">
+              <div class="drop-zone" data-accept="nest" id="zone-nest">
+                <span class="zone-icon">🪹</span>
+                <strong class="zone-title">Nido del árbol</strong>
+                <span class="zone-drop-status">Suelta aquí</span>
+              </div>
+              <div class="drop-zone" data-accept="chest" id="zone-chest">
+                <span class="zone-icon">📦</span>
+                <strong class="zone-title">Cofre de tesoro</strong>
+                <span class="zone-drop-status">Suelta aquí</span>
+              </div>
+              <div class="drop-zone" data-accept="easel" id="zone-easel">
+                <span class="zone-icon">🎨</span>
+                <strong class="zone-title">Caballete de arte</strong>
+                <span class="zone-drop-status">Suelta aquí</span>
+              </div>
+            </div>
+
+            <div class="game-success-message hidden" id="drag-success-banner">
+              🌟 ¡Fantástico! ¡Organizamos todos los objetos con el mouse!
+            </div>
+          </div>
+
+        </div>
+
+        <aside class="character-guide-dock" id="dock-level5">
+          <div class="speech-bubble" id="bubble-level5">
+            "¡El computador también nos permite jugar, ejercitar la mente y divertirnos un montón!"
+          </div>
+          <div class="dock-mousecito-avatar gamer-mode"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 8: NIVEL 6 - LA CASA DE LOS ABRAZOS -->
+    <section id="screen-level6" class="game-screen screen-level screen-home-call" aria-label="Nivel 6: La Casa de los Abrazos">
+      <div class="scene-stage">
+        <!-- Fondo de Hogar Cálido con Cuadros y Plantas -->
+        <div class="scenery-cozy-home">
+          <div class="family-portraits-wall"></div>
+          <div class="living-lamp-glow"></div>
+          <div class="cozy-table-cloth"></div>
+        </div>
+
+        <div class="call-interactive-area">
+          
+          <!-- Estado 1: Pantalla de Contactos / Iniciar Llamada -->
+          <div class="call-setup-card" id="call-step-start">
+            <h3 class="call-mission-title">💌 ¿Quieres comunicarte con alguien que está lejos?</h3>
+            <p class="call-mission-desc">Mousecito quiere saludar a sus abuelitos que viven en otra ciudad.</p>
+
+            <div class="contact-card-choice" id="btn-start-call" tabindex="0" role="button">
+              <div class="contact-avatar">👵👴</div>
+              <div class="contact-info">
+                <strong>Abuelitos de Mousecito</strong>
+                <span>En línea • Listos para saludarte</span>
+              </div>
+              <button class="btn-call-action">
+                <span class="phone-ring-icon">📞</span>
+                <span>¡Iniciar Videollamada!</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Estado 2: Pantalla de Videollamada Simulada Activa -->
+          <div class="simulated-videocall-window hidden" id="call-step-active">
+            <div class="videocall-header-bar">
+              <div class="call-live-badge"><span class="red-pulse-dot"></span> EN VIVO</div>
+              <span class="call-contact-title">Videollamada familiar con los Abuelitos</span>
+              <span class="call-timer-label" id="call-timer">00:15</span>
+            </div>
+
+            <!-- Pantalla Principal de la Cámara de los Abuelitos -->
+            <div class="videocall-screen-canvas">
+              <div class="grandparents-video-feed">
+                <!-- Ilustración Vectorial de los Abuelitos Sonriendo -->
+                <div class="grandparents-avatars-group" id="grandparents-duo">
+                  <div class="grandma-figure">
+                    <span class="grandma-emoji">👵</span>
+                    <span class="grandma-name">Abuelita</span>
+                  </div>
+                  <div class="grandpa-figure">
+                    <span class="grandpa-emoji">👴</span>
+                    <span class="grandpa-name">Abuelito</span>
+                  </div>
+                </div>
+
+                <!-- Efecto de Corazones y Saludos Volando -->
+                <div class="flying-hearts-container" id="flying-hearts"></div>
+
+                <!-- Mensaje de los Abuelitos en Pantalla -->
+                <div class="grandparents-speech" id="grandparents-speech">
+                  "¡Hola, Mousecito querido! ¡Qué alegría verte por el computador!"
+                </div>
+              </div>
+
+              <!-- Pequeña vista propia (PiP) de Mousecito -->
+              <div class="self-pip-preview">
+                <span class="pip-icon">🐭</span>
+                <span class="pip-label">Tú</span>
+              </div>
+            </div>
+
+            <!-- Botones Interactivos de Comunicación Infantil -->
+            <div class="videocall-actions-footer">
+              <button class="call-interaction-btn" id="btn-send-wave">
+                👋 Saludar con la mano
+              </button>
+              <button class="call-interaction-btn" id="btn-send-hug">
+                💖 Enviar un abrazo
+              </button>
+              <button class="call-interaction-btn" id="btn-send-message">
+                💬 Decir: "¡Los quiero mucho!"
+              </button>
+              <button class="call-hangup-btn" id="btn-finish-call">
+                ✨ Finalizar videollamada
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <aside class="character-guide-dock" id="dock-level6">
+          <div class="speech-bubble" id="bubble-level6">
+            "¡Qué maravilloso! El computador nos conecta con las personas que queremos aunque estén muy lejos."
+          </div>
+          <div class="dock-mousecito-avatar family-mode"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 9: GRAN RETO FINAL - LA CIUDAD NECESITA TU AYUDA -->
+    <section id="screen-final" class="game-screen screen-level screen-final-plaza" aria-label="Gran Reto: La Ciudad Necesita Tu Ayuda">
+      <div class="scene-stage">
+        <!-- Fondo de la Gran Plaza Central al Atardecer Luminoso -->
+        <div class="scenery-plaza-background">
+          <div class="plaza-skyline"></div>
+          <div class="plaza-celebration-banners"></div>
+          <div class="plaza-pavement"></div>
+        </div>
+
+        <div class="plaza-interactive-challenge">
+          <div class="plaza-mission-banner">
+            <h2>👑 Gran Reto: ¡La Ciudad Necesita Tu Ayuda!</h2>
+            <p>Los habitantes tienen diferentes necesidades. ¿Qué uso del computador le corresponde a cada uno?</p>
+          </div>
+
+          <!-- Tablero de Emparejamiento: 6 Habitantes vs 6 Lugares de la Ciudad -->
+          <div class="plaza-matching-board">
+            
+            <!-- Columna Izquierda: 6 Habitantes con su deseo -->
+            <div class="citizens-requests-column" id="citizens-list">
+              <div class="citizen-card" data-need="animals" id="cit-animals" tabindex="0" role="button">
+                <span class="cit-avatar">👦</span>
+                <div class="cit-speech-snippet">
+                  <strong>Tomasito:</strong> "Quiero aprender sobre los animales del mar."
+                </div>
+                <span class="cit-status-tag">¿A dónde va?</span>
+              </div>
+
+              <div class="citizen-card" data-need="paint" id="cit-paint" tabindex="0" role="button">
+                <span class="cit-avatar">👧</span>
+                <div class="cit-speech-snippet">
+                  <strong>Sofía:</strong> "Quiero dibujar y pintar una casita de colores."
+                </div>
+                <span class="cit-status-tag">¿A dónde va?</span>
+              </div>
+
+              <div class="citizen-card" data-need="write" id="cit-write" tabindex="0" role="button">
+                <span class="cit-avatar">🧑</span>
+                <div class="cit-speech-snippet">
+                  <strong>Lucas:</strong> "Quiero escribir la palabra SOL con el teclado."
+                </div>
+                <span class="cit-status-tag">¿A dónde va?</span>
+              </div>
+
+              <div class="citizen-card" data-need="music" id="cit-music" tabindex="0" role="button">
+                <span class="cit-avatar">🐱</span>
+                <div class="cit-speech-snippet">
+                  <strong>Familia Melodía:</strong> "Queremos escuchar música y ver un video."
+                </div>
+                <span class="cit-status-tag">¿A dónde va?</span>
+              </div>
+
+              <div class="citizen-card" data-need="play" id="cit-play" tabindex="0" role="button">
+                <span class="cit-avatar">🐶</span>
+                <div class="cit-speech-snippet">
+                  <strong>Hermanitos:</strong> "Queremos jugar un reto de parejas divertido."
+                </div>
+                <span class="cit-status-tag">¿A dónde va?</span>
+              </div>
+
+              <div class="citizen-card" data-need="call" id="cit-call" tabindex="0" role="button">
+                <span class="cit-avatar">👵</span>
+                <div class="cit-speech-snippet">
+                  <strong>Abuelita Rosa:</strong> "Quiero saludar por videollamada a mi nieto."
+                </div>
+                <span class="cit-status-tag">¿A dónde va?</span>
+              </div>
+            </div>
+
+            <!-- Columna Derecha: 6 Lugares / Funciones del Computador -->
+            <div class="places-targets-column" id="places-list">
+              <div class="place-target-card" data-match="animals" id="place-library" tabindex="0" role="button">
+                <span class="place-icon">📘</span>
+                <div class="place-info">
+                  <strong>Biblioteca Mágica</strong>
+                  <small>Aprender y hacer tareas</small>
+                </div>
+              </div>
+
+              <div class="place-target-card" data-match="paint" id="place-studio" tabindex="0" role="button">
+                <span class="place-icon">🎨</span>
+                <div class="place-info">
+                  <strong>Taller de Colores</strong>
+                  <small>Dibujar y pintar</small>
+                </div>
+              </div>
+
+              <div class="place-target-card" data-match="write" id="place-school" tabindex="0" role="button">
+                <span class="place-icon">✍️</span>
+                <div class="place-info">
+                  <strong>Escuela de Letras</strong>
+                  <small>Escribir palabras y mensajes</small>
+                </div>
+              </div>
+
+              <div class="place-target-card" data-match="music" id="place-music" tabindex="0" role="button">
+                <span class="place-icon">🎵</span>
+                <div class="place-info">
+                  <strong>Estudio Musical</strong>
+                  <small>Escuchar música y ver videos</small>
+                </div>
+              </div>
+
+              <div class="place-target-card" data-match="play" id="place-park" tabindex="0" role="button">
+                <span class="place-icon">🎮</span>
+                <div class="place-info">
+                  <strong>Parque de los Retos</strong>
+                  <small>Jugar y aprender</small>
+                </div>
+              </div>
+
+              <div class="place-target-card" data-match="call" id="place-home" tabindex="0" role="button">
+                <span class="place-icon">💬</span>
+                <div class="place-info">
+                  <strong>Casa de los Abrazos</strong>
+                  <small>Comunicar con familiares</small>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Barra de Progreso del Reto Final -->
+          <div class="final-match-progress">
+            <span>Ayudas completadas: <strong id="final-matches-count">0</strong> de 6</span>
+          </div>
+
+        </div>
+
+        <aside class="character-guide-dock" id="dock-final">
+          <div class="speech-bubble" id="bubble-final">
+            "¡Toca a un habitante y luego toca el lugar de la ciudad que le puede ayudar con el computador!"
+          </div>
+          <div class="dock-mousecito-avatar mayor-mode"></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- PANTALLA 10: CELEBRACIÓN DE VICTORIA FINAL -->
+    <section id="screen-celebration" class="game-screen screen-celebration" aria-labelledby="victory-heading">
+      <div class="celebration-content-box">
+        <div class="victory-medal-wrapper">
+          <div class="medal-ribbon"></div>
+          <div class="medal-gold-disc pulse-animation">
+            <span class="medal-symbol">🏅</span>
+          </div>
+        </div>
+
+        <span class="celebration-subtitle">¡Misión Cumplida, Gran Explorador!</span>
+        <h2 id="victory-heading" class="celebration-main-title">EXPLORADOR DIGITAL</h2>
+        
+        <p class="celebration-summary-text">
+          ¡Completaste toda la aventura! Ahora sabes con certeza que un computador nos ayuda a:
+        </p>
+
+        <!-- Cuadrícula Resumen Pedagógico de los 6 Usos -->
+        <div class="pedagogy-summary-grid">
+          <div class="summary-pill"><span>📘</span> 1. Aprender y hacer tareas</div>
+          <div class="summary-pill"><span>🎨</span> 2. Dibujar y pintar</div>
+          <div class="summary-pill"><span>✍️</span> 3. Escribir letras y palabras</div>
+          <div class="summary-pill"><span>🎵</span> 4. Escuchar música y ver videos</div>
+          <div class="summary-pill"><span>🎮</span> 5. Jugar y ejercitar la mente</div>
+          <div class="summary-pill"><span>💬</span> 6. Comunicarse con seres queridos</div>
+        </div>
+
+        <!-- Botones de Acción Final -->
+        <div class="victory-buttons-row">
+          <button id="btn-victory-map" class="btn-primary-action">
+            🗺️ Volver a Recorrer la Ciudad
+          </button>
+          <button id="btn-victory-summary" class="btn-secondary-action">
+            📖 Ver lo que Aprendimos
+          </button>
+          <button id="btn-victory-restart" class="btn-secondary-action">
+            🔄 Jugar otra vez
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL DE AYUDA / PISTAS VISUALES -->
+    <div id="modal-help" class="game-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="modal-dialog-card">
+        <div class="modal-header">
+          <span class="modal-icon">💡</span>
+          <h3 id="help-title" class="modal-heading">Consejo de Mousecito</h3>
+          <button id="btn-close-help" class="modal-close-btn" aria-label="Cerrar ayuda">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="help-avatar-illustration">🐭🎒</div>
+          <p id="help-modal-text" class="help-message-content">
+            "¡Toca con el mouse o con tu dedito los elementos brillantes para descubrir todo lo que podemos hacer con la computadora!"
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-help-ok" class="btn-primary-action">¡Entendido, gracias!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL DE RESUMEN PEDAGÓGICO ("LO QUE APRENDIMOS") -->
+    <div id="modal-summary" class="game-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="summary-title">
+      <div class="modal-dialog-card summary-book-card">
+        <div class="modal-header">
+          <span class="modal-icon">📖</span>
+          <h3 id="summary-title" class="modal-heading">Cuaderno del Explorador: ¿Para qué usamos el computador?</h3>
+          <button id="btn-close-summary" class="modal-close-btn" aria-label="Cerrar cuaderno">✕</button>
+        </div>
+        <div class="modal-body summary-book-body">
+          <div class="summary-card-item">
+            <span class="item-icon">📘</span>
+            <div class="item-text">
+              <strong>1. Aprender y Hacer Tareas:</strong>
+              <p>Consultamos libros, investigamos sobre animales, planetas y la naturaleza.</p>
+            </div>
+          </div>
+          <div class="summary-card-item">
+            <span class="item-icon">🎨</span>
+            <div class="item-text">
+              <strong>2. Dibujar y Pintar:</strong>
+              <p>Creamos obras de arte con colores vivos sin manchar ni gastar papel.</p>
+            </div>
+          </div>
+          <div class="summary-card-item">
+            <span class="item-icon">✍️</span>
+            <div class="item-text">
+              <strong>3. Escribir con el Teclado:</strong>
+              <p>Formamos palabras como SOL, OSO y enviamos lindos mensajes escritos.</p>
+            </div>
+          </div>
+          <div class="summary-card-item">
+            <span class="item-icon">🎵</span>
+            <div class="item-text">
+              <strong>4. Escuchar Música y Ver Videos:</strong>
+              <p>Disfrutamos de instrumentos musicales, canciones y divertidos videos animados.</p>
+            </div>
+          </div>
+          <div class="summary-card-item">
+            <span class="item-icon">🎮</span>
+            <div class="item-text">
+              <strong>5. Jugar y Aprender:</strong>
+              <p>Resolvemos juegos de parejas y retos que despiertan nuestra imaginación.</p>
+            </div>
+          </div>
+          <div class="summary-card-item">
+            <span class="item-icon">💬</span>
+            <div class="item-text">
+              <strong>6. Comunicarnos a Distancia:</strong>
+              <p>Hacemos videollamadas con abuelitos, familiares y amigos que están lejos.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-summary-close-bottom" class="btn-primary-action">¡Cerrar Cuaderno!</button>
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- Fin de #game-container -->
+
+  <!-- Script principal del videojuego -->
+  <script src="script.js"></script>
+</body>
+</html>
